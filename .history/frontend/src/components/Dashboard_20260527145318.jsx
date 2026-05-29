@@ -1,0 +1,118 @@
+import { useState, useEffect } from 'react'
+import API from '../services/api'
+import ThreatCard from './ThreatCard'
+
+function Dashboard() {
+
+    const [result, setResult] = useState('No Activity Checked')
+     const [threats, setThreats] = useState([])
+
+    const checkActivity = async () => {
+
+        try {
+
+            const response = await API.post(
+                '/check-activity',
+                {
+                    activity: 100
+                }
+            )
+
+            setResult(response.data.result)
+            fetchThreats()
+
+        } catch (error) {
+
+            console.log(error)
+        }
+    }
+
+    const fetchThreats = async () => {
+
+    try {
+
+        const response = await API.get('/threats')
+
+        setThreats(response.data)
+
+    } catch (error) {
+
+        console.log(error)
+    }
+}
+useEffect(() => {
+
+    fetchThreats()
+
+}, [])
+
+    return (
+        <div style={{ padding: '20px' }}>
+
+            <h1>AI Security Dashboard</h1>
+
+            <button onClick={() => {
+
+    localStorage.removeItem('token')
+
+    window.location.reload()
+
+}}>
+    Logout
+</button>
+
+            <button
+                onClick={checkActivity}
+                style={{
+                    padding: '10px',
+                    marginBottom: '20px'
+                }}
+            >
+                Check Suspicious Activity
+            </button>
+
+            <ThreatCard
+    title='Threat Detection Result'
+    value={result}
+/>
+
+<h2>Recent Threat Logs</h2>
+
+{
+    threats.map((threat, index) => (
+
+        <div
+            key={index}
+            style={{
+                border: '1px solid gray',
+                padding: '10px',
+                marginBottom: '10px'
+            }}
+        >
+
+            <p>
+                <strong>Activity:</strong>
+                {' '}
+                {threat.activity}
+            </p>
+
+            <p>
+                <strong>Result:</strong>
+                {' '}
+                {threat.result}
+            </p>
+
+            <p>
+                <strong>Time:</strong>
+                {' '}
+                {new Date(
+                    threat.createdAt
+                ).toLocaleString()}
+            </p>
+
+        </div>
+    ))
+}
+}
+
+export default Dashboard
